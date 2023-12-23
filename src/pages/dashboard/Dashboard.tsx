@@ -1,6 +1,11 @@
 import { useCallback, useState } from "react";
 export const Dashboard = () => {
-  const [lista, setLista] = useState<string[]>(["teste1", "teste2", "teste3"]);
+  interface ITarefa {
+    id: number;
+    title: string;
+    isCompleted: boolean;
+  }
+  const [lista, setLista] = useState<ITarefa[]>([]);
 
   const handleInputKeyDown: React.KeyboardEventHandler<HTMLInputElement> =
     useCallback((e) => {
@@ -9,7 +14,16 @@ export const Dashboard = () => {
         const value = e.currentTarget.value;
         e.currentTarget.value = "";
         setLista((oldLista) => {
-          return [...oldLista, value];
+          if (oldLista.some((listItem) => listItem.title === value))
+            return oldLista;
+          return [
+            ...oldLista,
+            {
+              id: oldLista.length,
+              title: value,
+              isCompleted: false,
+            },
+          ];
         });
       }
     }, []);
@@ -18,9 +32,32 @@ export const Dashboard = () => {
       <p>Lista</p>
 
       <input onKeyDown={handleInputKeyDown} />
+      <p>{lista.filter((listItem) => listItem.isCompleted).length}</p>
       <ul>
-        {lista.map((value, index) => {
-          return <li>{value}</li>;
+        {lista.map((listItem, index) => {
+          return (
+            <li key={listItem.id}>
+              <input
+                checked={listItem.isCompleted}
+                type="checkbox"
+                onChange={() => {
+                  setLista((oldLista) => {
+                    return oldLista.map((oldListItem) => {
+                      const newisCompleted =
+                        oldListItem.title === listItem.title
+                          ? !oldListItem.isCompleted
+                          : oldListItem.isCompleted;
+                      return {
+                        ...oldListItem,
+                        isCompleted: newisCompleted,
+                      };
+                    });
+                  });
+                }}
+              />
+              {listItem.title}
+            </li>
+          );
         })}
       </ul>
     </div>
